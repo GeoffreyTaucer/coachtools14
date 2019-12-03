@@ -39,7 +39,7 @@ class VidOut:
         }
         if frame is None:
             frame = self.get_blank()
-        overlaid = frame
+        overlaid = frame.copy()
         shape = overlaid.shape
         for key in overlay_text:
             try:

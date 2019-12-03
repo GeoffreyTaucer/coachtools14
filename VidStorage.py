@@ -74,7 +74,7 @@ class VidStorage:
                 fetch_id = self.storage_limit - 1
 
             try:
-                return self.vid_box[fetch_id]
+                return self.vid_box[fetch_id].copy()
 
             except IndexError:
                 return None

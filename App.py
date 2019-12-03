@@ -8,130 +8,137 @@ import pygame as pg
 
 class App:
     def __init__(self):
-        self.version = "0.0.14"
         self.vid_out = VidOut()
         self.vid_in = Feed()
         self.vid_storage = VidStorage(use_hard_drive=False)
 
-        self.feeding_in = True
-        self.display_status = "feed"
-        self.shutting_down = False
-        self.input_loop_thread = None
-
-        self.hold_goal = None
-        self.play_audio_cue = False
-
-        self.delay_display_timer = None
+        self.video_input_thread = Thread(target=self.video_in_loop)
 
         pg.init()
         pg.joystick.init()
         self.pad = pg.joystick.Joystick(0)
         self.pad.init()
 
-        self.delay_in_seconds = None
-        self.delay_in_frames = None
-        self.fetch_id = None
+        self.settings = {
+            "version": "0.0.14",
+            "feeding in": True,
+            "shutting down": False,
+            "displaying": "feed",
+            "delay in seconds": 0,
+            "delay in frames": 0,
+            "display start": 0.0,
+            "fetch id": 0,
+        }
 
-        self.set_delay(3)
+        print("")
+        print("Thank you for using CoachTools 0.0.14 by Jeremy Waters")
 
-    def set_delay(self, delay_in_seconds):
-        self.delay_in_seconds = delay_in_seconds
-        if self.delay_in_seconds < 0:
-            self.delay_in_seconds = 0
-        self.delay_in_frames = delay_in_seconds * self.vid_in.fps
-        if self.delay_in_frames > self.vid_storage.storage_limit:
-            self.delay_in_seconds = int(self.vid_storage.storage_limit / self.vid_in.fps)
-            self.delay_in_frames = self.delay_in_seconds * self.vid_in.fps
-        self.delay_display_timer = time()
+    @property
+    def delay_in_seconds(self):
+        return self.settings["delay in seconds"]
 
-    def input_loop(self):
-        while not self.shutting_down:
-            if self.feeding_in:
+    @delay_in_seconds.setter
+    def delay_in_seconds(self, d: int):
+        if d < 0:
+            d = 0
+        self.settings["delay in seconds"] = d
+        self.settings["delay in frames"] = int(d * self.vid_in.fps)
+        if self.settings["delay in frames"] > self.vid_storage.storage_limit:
+            self.settings["delay in seconds"] = int(self.vid_storage.storage_limit/self.vid_in.fps)
+            self.settings["delay in frames"] = int(self.settings["delay in seconds"] * self.vid_in.fps)
+        self.settings["display start"] = time()
+
+    @property
+    def delay_in_frames(self):
+        return self.settings["delay in frames"]
+
+    @delay_in_frames.setter
+    def delay_in_frames(self, d: int):
+        if d < 0:
+            d = 0
+        elif d > self.vid_storage.storage_limit:
+            d = self.vid_storage.storage_limit
+
+        try:
+            self.settings["delay in seconds"] = int(d/self.vid_in.fps)
+        except ZeroDivisionError:
+            self.settings["delay in seconds"] = 0
+
+        self.settings["delay in frames"] = int(self.settings["delay in seconds"] * self.vid_in.fps)
+        self.settings["display start"] = time()
+
+    def video_in_loop(self):
+        while not self.settings["shutting down"]:
+            if self.settings["feeding in"]:
                 frame = self.vid_in.get_frame()
                 self.vid_storage.store_frame(frame)
 
-    def main(self):
-        self.input_loop_thread = Thread(target=self.input_loop)
-        self.input_loop_thread.start()
-        self.delay_display_timer = time()
-        while not self.shutting_down:
-            if self.display_status == "feed":
-                self.display_feed()
+    def shutdown(self):
+        self.settings["shutting down"] = True
+        self.video_input_thread.join()
 
-            elif self.display_status == "pause":
-                self.pause()
-
-    def display_feed(self):
-        self.delay_in_frames = int(self.delay_in_seconds * self.vid_in.fps)
-        frame = self.vid_storage.fetch_frame(self.delay_in_frames).copy()
-        if time() - self.delay_display_timer < 3:
-            self.vid_out.add_overlay(frame, {'top left': [f'Delay: {self.delay_in_seconds} sec']})
-        k = self.show_frame(frame)
-
-        if k == ord('q'):
-            self.shut_down()
-
-    def user_input_feed(self):
-        for event in pg.event.get():
-            if event.type == pg.JOYBUTTONDOWN:
-                if self.pad.get_button(9) == 1:
-                    self.feeding_in = False
-                    self.fetch_id = self.delay_in_frames
-                    self.display_status = "pause"
-
-            elif event.type == pg.JOYAXISMOTION:
-                if self.pad.get_axis(1) > 0.5:
-                    self.set_delay(self.delay_in_seconds + 1)
-                elif self.pad.get_axis(1) < -0.5:
-                    self.set_delay(self.delay_in_seconds - 1)
-
-                # elif self.pad.get_button(8) == 1:
-                #     self.menu()
-
-    def pause(self):
-        frame = self.vid_storage.fetch_frame(self.fetch_id)
-        k = self.show_frame(frame)
-
-        if k == ord('q'):
-            self.shut_down()
-
-        self.user_input_pause()
-
-    def user_input_pause(self):
+    def handle_controller_input_main(self):
         for event in pg.event.get():
             if event.type == pg.JOYAXISMOTION:
                 if self.pad.get_axis(0) > 0.5:
-                    self.fetch_id -= 1
-                    if self.fetch_id < 0:
-                        self.fetch_id = 0
+                    self.delay_in_seconds -= 1
+
                 elif self.pad.get_axis(0) < -0.5:
-                    self.fetch_id += 1
-                    if self.fetch_id > self.vid_storage.storage_limit:
-                        self.fetch_id = self.vid_storage.storage_limit
+                    self.delay_in_seconds += 1
+
+            if event.type == pg.JOYBUTTONDOWN:
+                if self.pad.get_button(9) == 1:
+                    self.pause()
+
+    def handle_controller_input_paused(self):
+        for event in pg.event.get():
+            if event.type == pg.JOYAXISMOTION:
+                if self.pad.get_axis(0) > 0.5:
+                    self.settings["fetch id"] -= int(self.vid_in.fps)
+
+                elif self.pad.get_axis(0) < -0.5:
+                    self.settings["fetch id"] += int(self.vid_in.fps)
 
                 elif self.pad.get_axis(1) > 0.5:
-                    self.fetch_id -= int(self.vid_in.fps)
-                    if self.fetch_id < 0:
-                        self.fetch_id = 0
+                    self.settings["fetch id"] -= 1
+
                 elif self.pad.get_axis(1) < -0.5:
-                    self.fetch_id += int(self.vid_in.fps)
-                    if self.vid_in.fps >= self.vid_storage.storage_limit:
-                        self.fetch_id = self.vid_storage.storage_limit
+                    self.settings["fetch id"] += 1
 
-    def menu(self):  # unfinished
-        self.display_status = "menu"
-        selcted = 0
-        while self.display_status == "menu":
-            frame = self.vid_out.get_blank().copy()
+            elif event.type == pg.JOYBUTTONDOWN:
+                if self.pad.get_button(9) == 1:
+                    self.settings["feeding in"] = True
+                    self.settings["displaying"] = "feed"
 
-    def show_frame(self, frame):
-        out = frame.copy()
-        if self.display_status == "feed" and self.delay_display_timer - time() < 3:
-            self.vid_out.add_overlay(out, {"top left": [f"Delay set at {self.delay_in_seconds} sec"]})
+    def pause(self):
+        self.settings["feeding in"] = False
+        self.settings["displaying"] = "pause"
+        self.settings["fetch id"] = self.delay_in_frames
+        while self.settings["displaying"] == "pause":
+            out_frame = self.vid_storage.fetch_frame(self.settings["fetch id"])
+            k = self.vid_out.display_frame(out_frame)
 
-        return self.vid_out.display_frame(out)
+            if k == ord('q'):
+                self.shutdown()
+                break
 
-    def shut_down(self):
-        self.display_status = "shutdown"
-        self.vid_storage.cleanup()
-        self.shutting_down = True
+            self.handle_controller_input_paused()
+
+    def main_func(self):
+        self.delay_in_seconds = 3
+        self.video_input_thread.start()
+        while not self.settings["shutting down"]:
+            out_frame = self.vid_storage.fetch_frame(self.delay_in_frames)
+            if time() - self.settings["display start"] < 3:
+                self.vid_out.add_overlay(out_frame, {"top left": f"{self.delay_in_seconds} seconds"})
+            k = self.vid_out.display_frame(out_frame)
+            if k == ord('q'):
+                self.shutdown()
+                break
+
+            self.handle_controller_input_main()
+
+
+if __name__ == '__main__':
+    app = App()
+    app.main_func()
