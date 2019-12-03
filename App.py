@@ -1,3 +1,7 @@
+print("Thank you for using CoachTools 0.0.14 by Jeremy Waters")
+print("Built using")
+print("OpenCV and")
+
 from VideoOut import VidOut
 from VidInput import Feed
 from VidStorage import VidStorage
@@ -14,11 +18,6 @@ class App:
 
         self.video_input_thread = Thread(target=self.video_in_loop)
 
-        pg.init()
-        pg.joystick.init()
-        self.pad = pg.joystick.Joystick(0)
-        self.pad.init()
-
         self.settings = {
             "version": "0.0.14",
             "feeding in": True,
@@ -28,10 +27,16 @@ class App:
             "delay in frames": 0,
             "display start": 0.0,
             "fetch id": 0,
+            "sleep after": 300 * self.vid_in.fps,
+            "showing hold timer": False,
+            "playing ding for hold": False,
+            "already played ding for this hold": False
         }
 
-        print("")
-        print("Thank you for using CoachTools 0.0.14 by Jeremy Waters")
+        pg.init()
+        pg.joystick.init()
+        self.pad = pg.joystick.Joystick(0)
+        self.pad.init()
 
     @property
     def delay_in_seconds(self):
@@ -128,15 +133,28 @@ class App:
         self.delay_in_seconds = 3
         self.video_input_thread.start()
         while not self.settings["shutting down"]:
-            out_frame = self.vid_storage.fetch_frame(self.delay_in_frames)
+            if self.vid_in.motionless_frames > self.settings["sleep after"]:
+                self.settings["displaying"] = "blank"
+            elif self.vid_in.motion_frames > 3:
+                self.settings["displaying"] = "feed"
+
+            if self.settings["displaying"] == "blank":
+                out_frame = self.vid_out.get_blank()
+                self.settings["display start"] = 0
+            else:
+                out_frame = self.vid_storage.fetch_frame(self.delay_in_frames)
+
             if time() - self.settings["display start"] < 3:
-                self.vid_out.add_overlay(out_frame, {"top left": f"{self.delay_in_seconds} seconds"})
+                out_frame = self.vid_out.add_overlay(out_frame, {'top left': [f"{self.delay_in_seconds} seconds"]})
+
             k = self.vid_out.display_frame(out_frame)
             if k == ord('q'):
                 self.shutdown()
                 break
 
             self.handle_controller_input_main()
+
+        self.vid_in.cap.release()
 
 
 if __name__ == '__main__':
