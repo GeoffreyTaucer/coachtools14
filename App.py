@@ -1,4 +1,5 @@
-print("Thank you for using CoachTools 0.0.14 by Jeremy Waters")
+print("Thank you for using CoachTools by Jeremy Waters")
+print("Version 0.0.14")
 print("Built using")
 print("OpenCV and")
 
@@ -30,7 +31,9 @@ class App:
             "sleep after": 300 * self.vid_in.fps,
             "showing hold timer": False,
             "playing ding for hold": False,
-            "already played ding for this hold": False
+            "already played ding": False,
+            "hold goal": 0,
+            "selected": 0,
         }
 
         pg.init()
@@ -95,6 +98,9 @@ class App:
                 if self.pad.get_button(9) == 1:
                     self.pause()
 
+                elif self.pad.get_button(8) == 1:
+                    self.menu()
+
     def handle_controller_input_paused(self):
         for event in pg.event.get():
             if event.type == pg.JOYAXISMOTION:
@@ -115,6 +121,43 @@ class App:
                     self.settings["feeding in"] = True
                     self.settings["displaying"] = "feed"
 
+    def handle_controller_input_menu(self):
+        for event in pg.event.get():
+            if event.type == pg.JOYAXISMOTION:
+                if self.pad.get_axis(1) > 0.5:
+                    self.settings["selected"] += 1
+                    if self.settings["selected"] > 4:
+                        self.settings["selected"] = 0
+
+                elif self.pad.get_axis(1) < -0.5:
+                    self.settings["selected"] -= 1
+                    if self.settings["selected"] < 0:
+                        self.settings["selected"] = 4
+
+                elif self.settings["selected"] == 0:
+                    if self.pad.get_axis(0) > 0.5:
+                        self.delay_in_seconds += 1
+                    elif self.pad.get_axis(0) < -0.5:
+                        self.delay_in_seconds -= 1
+
+                elif self.settings["selected"] == 1:
+                    if self.pad.get_axis(0) > 0.5 or self.pad.get_axis(0) < -0.5:
+                        self.settings["showing hold timer"] = not self.settings["showing hold timer"]
+
+                elif self.settings["selected"] == 2:
+                    if self.pad.get_axis(0) > 0.5:
+                        self.settings["hold goal"] += 1
+                    elif self.pad.get_axis(0) < -0.5:
+                        self.settings["hold goal"] -= 1
+
+                elif self.settings["selected"] == 3:
+                    if self.pad.get_axis(0) > 0.5 or self.pad.get_axis(0) < -0.5:
+                        self.settings["playing ding for hold"] = not self.settings["playing ding for hold"]
+
+            elif self.settings["selected"] == 4 and event.type == pg.JOYBUTTONDOWN:
+                self.settings["displaying"] = "feed"
+                self.settings["display start"] = time()
+
     def pause(self):
         self.settings["feeding in"] = False
         self.settings["displaying"] = "pause"
@@ -128,6 +171,27 @@ class App:
                 break
 
             self.handle_controller_input_paused()
+
+    def menu(self):
+        self.settings["displaying"] = "menu"
+        while self.settings["displaying"] == "menu":
+            options = [
+                f"{'-->' if self.settings['selected'] == 0 else '     '}Delay: <{self.delay_in_seconds}> seconds.",
+                f"{'-->' if self.settings['selected'] == 1 else '     '}Hold timer: {'on' if self.settings['showing hold timer'] else 'off'}",
+                f"{'-->' if self.settings['selected'] == 2 else '     '}    Hold goal: {self.settings['hold goal']} seconds",
+                f"{'-->' if self.settings['selected'] == 3 else '     '}    Audio cue: {'on' if self.settings['playing ding for hold'] else 'off'}",
+                f"{'-->' if self.settings['selected'] == 4 else '     '}Exit menu"
+            ]
+            blank = self.vid_out.get_blank()
+            overlaid = self.vid_out.add_overlay(blank, {"top left": options,
+                                                        "bot right": [f"Coach Tools version {self.settings['version']}"
+                                                                      f" by Jeremy Waters"]})
+            k = self.vid_out.display_frame(overlaid)
+            if k == ord('q'):
+                self.shutdown()
+                break
+
+            self.handle_controller_input_menu()
 
     def main_func(self):
         self.delay_in_seconds = 3

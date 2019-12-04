@@ -56,10 +56,12 @@ class VidStorage:
     def fetch_frame(self, delay_in_frames):
         if self.use_hard_drive:
             fetch_id = int(self.__storage_num - delay_in_frames)
+            while fetch_id < 0:
+                fetch_id = -fetch_id % self.storage_limit
+            if fetch_id > self.storage_limit:
+                fetch_id = fetch_id % self.storage_limit
 
             try:
-                while fetch_id < 0:
-                    fetch_id += self.storage_limit
                 return cv.imread(f'{self.vid_path}/{fetch_id}.png')
 
             except FileNotFoundError:
