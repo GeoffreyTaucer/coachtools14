@@ -86,30 +86,6 @@ class MotionDetector:
 
         return self.is_moving
 
-    # def get_motion_composite(self, monitor): # doesn't work yet
-    #     """
-    #     Takes Take four frames and returns a composite frame
-    #
-    #     Takes monitor measurements (width, height) and four frames, and assembles those four frames to each take up
-    #     one quadrant of the monitor
-    #     """
-    #     width = monitor.width
-    #     height = monitor.height
-    #     frames = (self.gray, self.diff, self.threshed, self.denoised)
-    #     shrunk_frames = []
-    #     for frame in frames:
-    #         shrunk_frames.append(cv.resize(frame, (int(width / 2), int(height / 2)), interpolation=cv.INTER_AREA))
-    #
-    #     composite_frame = np.zeros((height, width), np.uint8)
-    #     composite_frame[0:0, int(height / 2):int(width / 2)] = shrunk_frames[0]
-    #     composite_frame[0:int(width / 2), int(height / 2):width] = shrunk_frames[1]
-    #     composite_frame[int(height / 2):0, int(width / 2):height] = shrunk_frames[2]
-    #     composite_frame[int(height / 2):int(width / 2), height:width] = shrunk_frames[3]
-    #     # TODO add overlay to left side indicating threshold, tolerance, kernel_size, erosions
-    #     # TODO add overlay to right side indicating total_diff/tolerance, is_moving
-    #
-    #     return composite_frame
-
     def reset_defaults(self):
         self.default = False
         self.threshold = 10

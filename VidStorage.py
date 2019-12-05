@@ -57,7 +57,7 @@ class VidStorage:
         if self.use_hard_drive:
             fetch_id = int(self.__storage_num - delay_in_frames)
             while fetch_id < 0:
-                fetch_id = -fetch_id % self.storage_limit
+                fetch_id += self.storage_limit
             if fetch_id > self.storage_limit:
                 fetch_id = fetch_id % self.storage_limit
 
