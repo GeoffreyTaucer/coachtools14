@@ -113,10 +113,10 @@ class App:
     def handle_controller_input_main(self):
         for event in pg.event.get():
             if event.type == pg.JOYAXISMOTION:
-                if self.pad.get_axis(0) > 0.5:
+                if self.pad.get_axis(1) > 0.5:
                     self.delay_in_seconds -= 1
 
-                elif self.pad.get_axis(0) < -0.5:
+                elif self.pad.get_axis(1) < -0.5:
                     self.delay_in_seconds += 1
 
             if event.type == pg.JOYBUTTONDOWN:
@@ -129,16 +129,16 @@ class App:
     def handle_controller_input_paused(self):
         for event in pg.event.get():
             if event.type == pg.JOYAXISMOTION:
-                if self.pad.get_axis(0) > 0.5:
+                if self.pad.get_axis(1) > 0.5:
                     self._settings["fetch id"] -= int(self.vid_in.fps)
 
-                elif self.pad.get_axis(0) < -0.5:
+                elif self.pad.get_axis(1) < -0.5:
                     self._settings["fetch id"] += int(self.vid_in.fps)
 
-                elif self.pad.get_axis(1) > 0.5:
+                elif self.pad.get_axis(0) > 0.5:
                     self._settings["fetch id"] -= 1
 
-                elif self.pad.get_axis(1) < -0.5:
+                elif self.pad.get_axis(0) < -0.5:
                     self._settings["fetch id"] += 1
 
             elif event.type == pg.JOYBUTTONDOWN:
