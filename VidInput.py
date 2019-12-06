@@ -5,7 +5,8 @@ import atexit
 
 class Feed:
     def __init__(self, vid_src=0):
-        self.cap = cv.VideoCapture(vid_src)
+        self.vid_src = vid_src
+        self.cap = cv.VideoCapture(self.vid_src)
         self.motion_detector = MotionDetector(default=True)
         self.current_frame = None
         self.height = self.cap.get(cv.CAP_PROP_FRAME_HEIGHT)
