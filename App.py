@@ -10,6 +10,7 @@ from threading import Thread
 from multiprocessing import Process
 from playsound import playsound
 from time import time
+from statistics import mean
 import pygame as pg
 
 
@@ -20,6 +21,13 @@ class App:
         self.vid_storage = VidStorage(use_hard_drive=True)
 
         self.video_input_thread = Thread(target=self.video_in_loop)
+
+        self.test_settings = {
+            "cap times": [],
+            "store times": [],
+            "display times": [],
+            "main loop times": [],
+        }
 
         self._settings = {
             "version": "0.0.14",
@@ -81,6 +89,7 @@ class App:
 
     def video_in_loop(self):
         while not self._settings["shutting down"]:
+            start = time()  # testing
             if self._settings["feeding in"]:
                 frame = self.vid_in.get_frame()
 
@@ -103,8 +112,10 @@ class App:
                     elif self.vid_in.motionless_frames == 0 and self._settings["currently holding"]:
                         self._settings["currently holding"] = False
                         self._settings["already played ding"] = False
-
+                self.test_settings["cap times"].append(time() - start)
+                start = time()
                 self.vid_storage.store_frame(frame)
+                self.test_settings["store times"].append(time() - start)
 
     def shutdown(self):
         self._settings["shutting down"] = True
@@ -230,6 +241,7 @@ class App:
         self.delay_in_seconds = 3
         self.video_input_thread.start()
         while not self._settings["shutting down"]:
+            start = time()
             if self.vid_in.motionless_frames > self._settings["sleep after"]:
                 self._settings["displaying"] = "blank"
             elif self.vid_in.motion_frames > 3:
@@ -244,6 +256,10 @@ class App:
             if time() - self._settings["display start"] < 3:
                 out_frame = self.vid_out.add_overlay(out_frame, {'top left': [f"{self.delay_in_seconds} seconds"]})
 
+            self.test_settings["main loop times"].append(time() - start)
+
+            start = time()
+
             k = self.vid_out.display_frame(out_frame)
             if k == ord('q'):
                 self.shutdown()
@@ -251,8 +267,13 @@ class App:
 
             self.handle_controller_input_main()
 
+            self.test_settings["display times"].append(time() - start)
+
         self.vid_in.cap.release()
         self.vid_storage.cleanup()
+
+        for key in self.test_settings.keys():
+            print(f'Average of {key}: {mean(self.test_settings[key])}')
 
 
 if __name__ == '__main__':

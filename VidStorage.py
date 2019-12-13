@@ -1,6 +1,5 @@
 import os
 import shutil
-import cv2 as cv
 import atexit
 import numpy as np
 
@@ -38,8 +37,6 @@ class VidStorage:
             np.save(f'{self.vid_path}/{self.__storage_num}', frame, False)
 
             self.__storage_num += 1
-            if self.__storage_num > self.storage_limit:
-                self.__storage_num = 0
 
         except IOError:
             self.storage_limit = len(os.listdir(f'{self.vid_path}')) - 60
@@ -57,16 +54,16 @@ class VidStorage:
 
     def fetch_frame(self, delay_in_frames):
         if self.use_hard_drive:
-            fetch_id = int(self.__storage_num - delay_in_frames)
+            fetch_id = int(self.__storage_num - delay_in_frames - 1)
             while fetch_id < 0:
                 fetch_id += self.storage_limit
             if fetch_id > self.storage_limit:
                 fetch_id = fetch_id % self.storage_limit
 
             try:
-                return np.load(f'{self.vid_path}/{fetch_id}', allow_pickle=False)
+                return np.load(f'{self.vid_path}/{fetch_id}.npy', allow_pickle=False)
 
-            except FileNotFoundError:
+            except (FileNotFoundError, ValueError):
                 return None
 
         else:
@@ -85,7 +82,7 @@ class VidStorage:
 
     def cleanup(self):
         try:
-            shutil.rmtree(self.vid_path)
+            shutil.rmtree(self.vid_path, ignore_errors=True)
 
         except FileNotFoundError:
             pass

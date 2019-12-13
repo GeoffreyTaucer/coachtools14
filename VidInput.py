@@ -1,6 +1,7 @@
 import cv2 as cv
 import numpy as np
 import atexit
+from threading import Thread
 
 
 class Feed:
@@ -24,7 +25,7 @@ class Feed:
 
     def get_frame(self):
         _, frame = self.cap.read()
-        self.check_movement(frame)
+        Thread(target=self.check_movement, args=(frame,)).start()
         return frame
 
     def check_movement(self, frame):
