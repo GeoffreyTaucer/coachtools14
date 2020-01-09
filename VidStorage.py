@@ -1,6 +1,7 @@
 import os
 import shutil
 import cv2 as cv
+import numpy as np
 import atexit
 
 
@@ -34,7 +35,7 @@ class VidStorage:
 
     def __store_on_hd(self, frame):
         try:
-            cv.imwrite(f'{self.vid_path}/{self.__storage_num}.png', frame, [cv.IMWRITE_PNG_COMPRESSION, 0])
+            np.save(f'{self.vid_path}/{self.__storage_num}.npy', frame, allow_pickle=False)
             self.__storage_num += 1
             if self.__storage_num > self.storage_limit:
                 self.__storage_num = 0
@@ -62,7 +63,7 @@ class VidStorage:
                 fetch_id = fetch_id % self.storage_limit
 
             try:
-                return cv.imread(f'{self.vid_path}/{fetch_id}.png')
+                return np.load(f'{self.vid_path}/{fetch_id}.npy')
 
             except FileNotFoundError:
                 return None
