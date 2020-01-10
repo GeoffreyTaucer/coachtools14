@@ -274,6 +274,8 @@ class App:
 
         for key in self.test_settings.keys():
             print(f'Average of {key}: {mean(self.test_settings[key])}')
+        print(f'Average main loop FPS: {1/mean(self.test_settings["main loop times"])}')
+        print(f'Average cap loop FPS: {1/mean(self.test_settings["cap times"])}')
 
 
 if __name__ == '__main__':

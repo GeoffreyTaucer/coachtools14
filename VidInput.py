@@ -14,7 +14,9 @@ class Feed:
         self.cap.set(cv.CAP_PROP_FRAME_WIDTH, width)
         self.height = self.cap.get(cv.CAP_PROP_FRAME_HEIGHT)
         self.width = self.cap.get(cv.CAP_PROP_FRAME_WIDTH)
+        print(f'height: {self.height}, width: {self.width}')
         self.fps = self.cap.get(cv.CAP_PROP_FPS)
+        print(f"Cap object thinks it's running at {self.fps} FPS")
 
         self.motion_frames = 0
         self.motionless_frames = 0
