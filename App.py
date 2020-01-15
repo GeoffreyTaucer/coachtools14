@@ -21,6 +21,8 @@ class App:
         self.vid_in = cv.VideoCapture(0)
         self.vid_in.set(cv.CAP_PROP_FRAME_WIDTH, 1280)
         self.vid_in.set(cv.CAP_PROP_FRAME_HEIGHT, 720)
+        self.vid_in.set(cv.CAP_PROP_FPS, 30)
+        print(f'Tried to set FPS to 30. Currently, it is set to {self.vid_in.get(cv.CAP_PROP_FPS)}')
         self.vid_storage = VidStorage(use_hard_drive=True)
         self.motion_detector = MotionDetector(default=True)
 
