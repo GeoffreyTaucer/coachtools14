@@ -4,7 +4,7 @@ print("Built using")
 print("OpenCV and")
 
 from VideoOut import VidOut
-from VidInput import Feed
+from VidInput import MotionDetector
 from VidStorage import VidStorage
 from threading import Thread
 from multiprocessing import Process
@@ -12,13 +12,17 @@ from playsound import playsound
 from time import time
 from statistics import mean
 import pygame as pg
+import cv2 as cv
 
 
 class App:
     def __init__(self):
         self.vid_out = VidOut()
-        self.vid_in = Feed()
+        self.vid_in = cv.VideoCapture(0)
+        self.vid_in.set(cv.CAP_PROP_FRAME_WIDTH, 1280)
+        self.vid_in.set(cv.CAP_PROP_FRAME_HEIGHT, 720)
         self.vid_storage = VidStorage(use_hard_drive=True)
+        self.motion_detector = MotionDetector(default=True)
 
         self.video_input_thread = Thread(target=self.video_in_loop)
 
@@ -38,7 +42,7 @@ class App:
             "delay in frames": 0,
             "display start": 0.0,
             "fetch id": 0,
-            "sleep after": 300 * self.vid_in.fps,
+            "sleep after": 300 * self.vid_in.get(cv.CAP_PROP_FPS),
             "showing hold timer": False,
             "playing ding for hold": False,
             "already played ding": False,
@@ -46,6 +50,14 @@ class App:
             "hold start": 0.0,
             "currently holding": False,
             "selected": 0,
+            "fps": self.vid_in.get(cv.CAP_PROP_FPS)
+        }
+
+        self.feed_stats = {
+            "motion frames": 0,
+            "motionless frames": 0,
+            "motion detected": False,
+            "paused": False
         }
 
         pg.init()
@@ -62,10 +74,10 @@ class App:
         if d < 0:
             d = 0
         self._settings["delay in seconds"] = d
-        self._settings["delay in frames"] = int(d * self.vid_in.fps)
+        self._settings["delay in frames"] = int(d * self._settings['fps'])
         if self._settings["delay in frames"] > self.vid_storage.storage_limit:
-            self._settings["delay in seconds"] = int(self.vid_storage.storage_limit / self.vid_in.fps)
-            self._settings["delay in frames"] = int(self._settings["delay in seconds"] * self.vid_in.fps)
+            self._settings["delay in seconds"] = int(self.vid_storage.storage_limit / self._settings['fps'])
+            self._settings["delay in frames"] = int(self._settings["delay in seconds"] * self._settings['fps'])
         self._settings["display start"] = time()
 
     @property
@@ -80,25 +92,46 @@ class App:
             d = self.vid_storage.storage_limit
 
         try:
-            self._settings["delay in seconds"] = int(d / self.vid_in.fps)
+            self._settings["delay in seconds"] = int(d / self._settings['fps'])
         except ZeroDivisionError:
             self._settings["delay in seconds"] = 0
 
-        self._settings["delay in frames"] = int(self._settings["delay in seconds"] * self.vid_in.fps)
+        self._settings["delay in frames"] = int(self._settings["delay in seconds"] * self._settings['fps'])
         self._settings["display start"] = time()
+
+    def get_frame(self):
+        _, frame = self.vid_in.read()
+        self.check_movement(frame)
+        return frame
+
+    def check_movement(self, frame):
+        is_moving = self.motion_detector.detect(frame)
+        if is_moving:
+            self.feed_stats["motion frames"] += 1
+
+            if self.feed_stats["motion frames"] > 3:
+                self.feed_stats["motionless frames"] = 0
+
+        else:
+            self.feed_stats["motionless frames"] += 1
+
+            if self.feed_stats["motionless frames"] > 3:
+                self.feed_stats["motion frames"] = 0
+
+        self.feed_stats["motion detected"] = self.feed_stats["motion frames"] > 3
 
     def video_in_loop(self):
         while not self._settings["shutting down"]:
             start = time()  # testing
             if self._settings["feeding in"]:
-                frame = self.vid_in.get_frame()
+                frame = self.get_frame()
 
                 if self._settings["showing hold timer"]:
-                    if self.vid_in.motionless_frames == 3:
+                    if self.feed_stats["motionless frames"] == 3:
                         self._settings["hold start"] = time()
                         self._settings["currently holding"] = True
 
-                    elif self.vid_in.motionless_frames > self.vid_in.fps:
+                    elif self.feed_stats["motionless frames"] > self._settings["fps"]:
                         held_time = round(time() - self._settings["hold start"], 1)
                         if self._settings["hold goal"] and held_time < self._settings["hold goal"]:
                             color = (0, 0, 255)
@@ -109,7 +142,7 @@ class App:
                             color = (0, 255, 0)
                         frame = self.vid_out.add_overlay(frame, {'bot left': [f"{held_time}"]}, color)
 
-                    elif self.vid_in.motionless_frames == 0 and self._settings["currently holding"]:
+                    elif self.feed_stats["motionless frames"] == 0 and self._settings["currently holding"]:
                         self._settings["currently holding"] = False
                         self._settings["already played ding"] = False
                 self.test_settings["cap times"].append(time() - start)
@@ -141,10 +174,10 @@ class App:
         for event in pg.event.get():
             if event.type == pg.JOYAXISMOTION:
                 if self.pad.get_axis(1) > 0.5:
-                    self._settings["fetch id"] -= int(self.vid_in.fps)
+                    self._settings["fetch id"] -= int(self.feed_stats["fps"])
 
                 elif self.pad.get_axis(1) < -0.5:
-                    self._settings["fetch id"] += int(self.vid_in.fps)
+                    self._settings["fetch id"] += int(self.feed_stats["fps"])
 
                 elif self.pad.get_axis(0) > 0.5:
                     self._settings["fetch id"] -= 1
@@ -242,9 +275,9 @@ class App:
         self.video_input_thread.start()
         while not self._settings["shutting down"]:
             start = time()
-            if self.vid_in.motionless_frames > self._settings["sleep after"]:
+            if self.feed_stats["motionless frames"] > self._settings["sleep after"]:
                 self._settings["displaying"] = "blank"
-            elif self.vid_in.motion_frames > 3:
+            elif self.feed_stats["motion frames"] > 3:
                 self._settings["displaying"] = "feed"
 
             if self._settings["displaying"] == "blank":
@@ -269,13 +302,14 @@ class App:
 
             self.test_settings["display times"].append(time() - start)
 
-        self.vid_in.cap.release()
+        self.vid_in.release()
         self.vid_storage.cleanup()
 
         for key in self.test_settings.keys():
             print(f'Average of {key}: {mean(self.test_settings[key])}')
         print(f'Average main loop FPS: {1/mean(self.test_settings["main loop times"])}')
         print(f'Average cap loop FPS: {1/mean(self.test_settings["cap times"])}')
+        print(f'Average display FPS: {1/mean(self.test_settings["display times"])}')
 
 
 if __name__ == '__main__':

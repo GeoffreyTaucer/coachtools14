@@ -1,7 +1,6 @@
 import cv2 as cv
 import numpy as np
 import atexit
-from threading import Thread
 
 
 class Feed:
@@ -9,7 +8,6 @@ class Feed:
         self.vid_src = vid_src
         self.cap = cv.VideoCapture(self.vid_src)
         self.motion_detector = MotionDetector(default=True)
-        self.current_frame = None
         self.cap.set(cv.CAP_PROP_FRAME_HEIGHT, height)
         self.cap.set(cv.CAP_PROP_FRAME_WIDTH, width)
         self.height = self.cap.get(cv.CAP_PROP_FRAME_HEIGHT)
@@ -27,7 +25,7 @@ class Feed:
 
     def get_frame(self):
         _, frame = self.cap.read()
-        Thread(target=self.check_movement, args=(frame,)).start()
+        self.check_movement(frame)
         return frame
 
     def check_movement(self, frame):
