@@ -5,16 +5,17 @@ It also has a built-in hold timer, great for practicing yoga poses or strength h
 # Controls:
 During video:
 
-```P: pause
+```
+P: pause
 M: menu
 Arrow keys: Increase/decrease video delay length by 1 second increments
-```
-
 Q: exit program
+```
 
 While paused:
 
-```P: unpause
+```
+P: unpause
 Up/down: Move forward/backward by one second
 Left/right: Move forward/backward by one frame
 ```
