@@ -17,7 +17,7 @@ class App:
     def __init__(self):
         self.vid_out = VidOut()
         self.vid_in = Feed(vid_src=0)
-        self.vid_storage = VidStorage(use_hard_drive=True)
+        self.vid_storage = VidStorage(use_hard_drive=False)
 
         self.video_input_thread = Thread(target=self.video_in_loop)
 
