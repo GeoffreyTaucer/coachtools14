@@ -7,7 +7,8 @@ During video:
 
 ```P: pause
 M: menu
-Arrow keys: Increase/decrease video delay length by 1 second increments```
+Arrow keys: Increase/decrease video delay length by 1 second increments
+```
 
 Q: exit program
 
@@ -15,7 +16,8 @@ While paused:
 
 ```P: unpause
 Up/down: Move forward/backward by one second
-Left/right: Move forward/backward by one frame```
+Left/right: Move forward/backward by one frame
+```
   
 # Known issues/to-do:
 This was originally written to run on a very specific set of hardware, and as such has not been thoroughly tested on with differing resource constraints. As such, it may bug or crash if you don't have enough RAM, or if your processor cannot process each frame fast enough to keep up with the camera.
