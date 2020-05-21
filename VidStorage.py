@@ -56,7 +56,7 @@ class VidStorage:
 
     def fetch_frame(self, delay_in_frames):
         if self.use_hard_drive:
-            fetch_id = int(self.__storage_num - delay_in_frames)
+            fetch_id = int(self.__storage_num - delay_in_frames -1)
             while fetch_id < 0:
                 fetch_id += self.storage_limit
             if fetch_id > self.storage_limit:
