@@ -35,10 +35,15 @@ If you're running on a system with an SSD, you might consider setting self.use_h
 First, install python 3. You can get it at python.org
 Second, clone the repo (green button above and to the right of this text field). If you downloaded it as a .zip, unzip it.
 Open a command prompt in the folder you downloaded to and enter the following line:
+
 ```pip install -r requirements.txt```
+
 The app should be ready to go. Depending on how everything is set up on your machine, one of the following three lines will run it:
+
 ```python3 App.py```
+
 ```py App.py```
+
 ```python App.py```
 
 # It crashed! What should I do?
