@@ -1,7 +1,7 @@
 print("Thank you for using CoachTools by Jeremy Waters")
 print("Version 0.0.14")
 print("Built using")
-print("OpenCV and")
+print("OpenCV 4 and")
 
 from VideoOut import VidOut
 from VidInput import Feed
