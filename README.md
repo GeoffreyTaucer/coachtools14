@@ -3,22 +3,29 @@ A set of video tools for use in athletic coaching. Coach Tools takes a video fee
 It also has a built-in hold timer, great for practicing yoga poses or strength holds. You can set a hold goal, and the app will play an audio cue to let you know when you've reached it.
 It requires a usb camera.
 
-# Controls:
+# Controls (using an NES-style USB gamepad):
 During video:
 
 ```
-P: pause
-M: menu
-Arrow keys: Increase/decrease video delay length by 1 second increments
-Q: exit program
+Start: pause
+Select: menu
+Up/Down: Increase/decrease video delay length by 1 second
 ```
 
 While paused:
 
 ```
-P: unpause
-Up/down: Move forward/backward by one second
-Left/right: Move forward/backward by one frame
+Start: unpause
+Up/Down: Move forward/backward by one second
+Left/Right: Move forward/backward by one frame
+```
+
+In menu:
+
+```
+Up/down: select parameter
+Left/right: adjust parameter
+A: confirm
 ```
   
 # Known issues/to-do:
