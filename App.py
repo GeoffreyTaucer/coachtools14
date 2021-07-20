@@ -113,71 +113,74 @@ class App:
     def handle_controller_input_main(self):
         for event in pg.event.get():
             if event.type in (pg.JOYAXISMOTION, pg.KEYDOWN, pg.JOYBUTTONDOWN):
-                if self.pad.get_axis(1) > 0.5 or event.key == pg.K_UP:
+                if self.pad.get_axis(1) > 0.5:  # or event.key == pg.K_UP
                     self.delay_in_seconds -= 1
 
-                elif self.pad.get_axis(1) < -0.5 or event.key == pg.K_DOWN:
+                elif self.pad.get_axis(1) < -0.5:  # or event.key == pg.K_DOWN
                     self.delay_in_seconds += 1
 
-                if self.pad.get_button(9) == 1 or event.key == pg.K_p:
+                if self.pad.get_button(9) == 1:  # or event.key == pg.K_p
                     self.pause()
 
-                elif self.pad.get_button(8) == 1 or event.key == pg.K_m:
+                elif self.pad.get_button(8) == 1:  # or event.key == pg.K_m
                     self.menu()
 
     def handle_controller_input_paused(self):
         for event in pg.event.get():
             if event.type in (pg.JOYAXISMOTION, pg.JOYBUTTONDOWN, pg.KEYDOWN):
-                if self.pad.get_axis(1) > 0.5 or event.key == pg.K_UP:
+                if self.pad.get_axis(1) > 0.5:  # or event.key == pg.K_UP
                     self._settings["fetch id"] -= int(self.vid_in.fps)
 
-                elif self.pad.get_axis(1) < -0.5 or event.key == pg.K_DOWN:
+                elif self.pad.get_axis(1) < -0.5:  # or event.key == pg.K_DOWN
                     self._settings["fetch id"] += int(self.vid_in.fps)
 
-                elif self.pad.get_axis(0) > 0.5 or event.key == pg.K_RIGHT:
+                elif self.pad.get_axis(0) > 0.5:  # or event.key == pg.K_RIGHT
                     self._settings["fetch id"] -= 1
 
-                elif self.pad.get_axis(0) < -0.5 or event.key == pg.K_LEFT:
+                elif self.pad.get_axis(0) < -0.5:  # or event.key == pg.K_LEFT
                     self._settings["fetch id"] += 1
 
-                if self.pad.get_button(9) == 1 or event.key == pg.K_p:
+                if self.pad.get_button(9) == 1:  # or event.key == pg.K_p
                     self._settings["feeding in"] = True
                     self._settings["displaying"] = "feed"
 
     def handle_controller_input_menu(self):
         for event in pg.event.get():
             if event.type in (pg.JOYAXISMOTION, pg.KEYDOWN):
-                if self.pad.get_axis(1) > 0.5 or event.key == pg.K_UP:
+                if self.pad.get_axis(1) > 0.5:  # or event.key == pg.K_UP
                     self._settings["selected"] += 1
                     if self._settings["selected"] > 4:
                         self._settings["selected"] = 0
 
-                elif self.pad.get_axis(1) < -0.5 or event.key == pg.K_DOWN:
+                elif self.pad.get_axis(1) < -0.5:  # or event.key == pg.K_DOWN
                     self._settings["selected"] -= 1
                     if self._settings["selected"] < 0:
                         self._settings["selected"] = 4
 
                 elif self._settings["selected"] == 0:
-                    if self.pad.get_axis(0) > 0.5 or event.key == pg.K_RIGHT:
+                    if self.pad.get_axis(0) > 0.5:  # or event.key == pg.K_RIGHT
                         self.delay_in_seconds += 1
-                    elif self.pad.get_axis(0) < -0.5 or event.key == pg.K_LEFT:
+                    elif self.pad.get_axis(0) < -0.5:  # or event.key == pg.K_LEFT
                         self.delay_in_seconds -= 1
 
                 elif self._settings["selected"] == 1:
-                    if self.pad.get_axis(0) > 0.5 or self.pad.get_axis(0) < -0.5 or event.key in (pg.K_LEFT, pg.K_RIGHT):
+                    if self.pad.get_axis(0) > 0.5 or self.pad.get_axis(0) < -0.5:
+                        # or event.key in (pg.K_LEFT, pg.K_RIGHT)
                         self._settings["showing hold timer"] = not self._settings["showing hold timer"]
 
                 elif self._settings["selected"] == 2:
-                    if self.pad.get_axis(0) > 0.5 or event.key == pg.K_RIGHT:
+                    if self.pad.get_axis(0) > 0.5:  # or event.key == pg.K_RIGHT
                         self._settings["hold goal"] += 1
-                    elif self.pad.get_axis(0) < -0.5 or event.key == pg.K_LEFT:
+                    elif self.pad.get_axis(0) < -0.5:  # or event.key == pg.K_LEFT
                         self._settings["hold goal"] -= 1
 
                 elif self._settings["selected"] == 3:
-                    if self.pad.get_axis(0) > 0.5 or self.pad.get_axis(0) < -0.5 or event.key in (pg.K_LEFT, pg.K_RIGHT):
+                    if self.pad.get_axis(0) > 0.5 or self.pad.get_axis(0) < -0.5:
+                        # or event.key in (pg.K_LEFT, pg.K_RIGHT)
                         self._settings["playing ding for hold"] = not self._settings["playing ding for hold"]
 
-            elif self._settings["selected"] == 4 and event.type == pg.JOYBUTTONDOWN or event.key in (pg.K_RETURN, pg.K_KP_ENTER):
+            elif self._settings["selected"] == 4 and event.type == pg.JOYBUTTONDOWN:
+                # or event.key in (pg.K_RETURN, pg.K_KP_ENTER)
                 self._settings["displaying"] = "feed"
                 self._settings["display start"] = time()
 
