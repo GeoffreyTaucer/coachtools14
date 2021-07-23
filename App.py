@@ -17,7 +17,7 @@ class App:
     def __init__(self):
         self.vid_out = VidOut()
         self.vid_in = Feed(vid_src=0)
-        self.vid_storage = VidStorage(use_hard_drive=False)
+        self.vid_storage = VidStorage(use_hard_drive=True)
 
         self.video_input_thread = Thread(target=self.video_in_loop)
 
@@ -228,6 +228,7 @@ class App:
             print(f"Oops! ding.mp3 not found!")
 
     def main_func(self):
+        pg.mouse.set_visible(False)
         self.delay_in_seconds = 3
         self.video_input_thread.start()
         while not self._settings["shutting down"]:

@@ -15,7 +15,7 @@ class VidStorage:
         storage_limit:              Maximum number of frames to be stored
     """
 
-    def __init__(self, use_hard_drive=True, path='/vid', ssd_storage_limit=900, ram_storage_limit=300):
+    def __init__(self, use_hard_drive=True, path='/vid', ssd_storage_limit=9000, ram_storage_limit=300):
         self.use_hard_drive = use_hard_drive
         self.vid_box = []
         self.vid_path = f'{os.getcwd()}{path}'
