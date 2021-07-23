@@ -7,11 +7,17 @@ class Feed:
     def __init__(self, vid_src=0):
         self.vid_src = vid_src
         self.cap = cv.VideoCapture(self.vid_src)
+        self.cap.set(cv.CAP_PROP_FPS, 30)
+        self.cap.set(cv.CAP_PROP_FRAME_WIDTH, 1280)
+        self.cap.set(cv.CAP_PROP_FRAME_HEIGHT, 720)
         self.motion_detector = MotionDetector(default=True)
         self.current_frame = None
         self.height = self.cap.get(cv.CAP_PROP_FRAME_HEIGHT)
         self.width = self.cap.get(cv.CAP_PROP_FRAME_WIDTH)
         self.fps = self.cap.get(cv.CAP_PROP_FPS)
+        print(f"Width: {self.width}")
+        print(f"Height: {self.height}")
+        print(f"Frame rate: {self.fps}fps")
 
         self.motion_frames = 0
         self.motionless_frames = 0
