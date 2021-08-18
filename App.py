@@ -1,5 +1,5 @@
 print("Thank you for using CoachTools by Jeremy Waters")
-print("Version 0.0.14")
+print("Version 0.14.1")
 print("Built using")
 print("OpenCV 4 and")
 
@@ -39,6 +39,11 @@ class App:
             "currently holding": False,
             "selected": 0,
         }
+
+        self.frame_counter = 0
+        self.frame_timer = None
+        self.real_frame_rate = 0
+        self.dev_mode = False
 
         pg.init()
         pg.joystick.init()
@@ -105,6 +110,7 @@ class App:
                         self._settings["already played ding"] = False
 
                 self.vid_storage.store_frame(frame)
+                self.frame_counter += 1
 
     def shutdown(self):
         self._settings["shutting down"] = True
@@ -230,6 +236,7 @@ class App:
     def main_func(self):
         self.delay_in_seconds = 3
         self.video_input_thread.start()
+        self.frame_timer = time()
         while not self._settings["shutting down"]:
             if self.vid_in.motionless_frames > self._settings["sleep after"]:
                 self._settings["displaying"] = "blank"
@@ -244,6 +251,14 @@ class App:
 
             if time() - self._settings["display start"] < 3:
                 out_frame = self.vid_out.add_overlay(out_frame, {'top left': [f"{self.delay_in_seconds} seconds"]})
+
+            if self.dev_mode:
+                if time() - self.frame_timer >= 1:
+                    self.real_frame_rate = self.frame_counter
+                    self.frame_counter = 0
+                    self.frame_timer = time()
+
+            out_frame = self.vid_out.add_overlay(out_frame, {'top right': [f"{self.real_frame_rate} FPS"]})
 
             k = self.vid_out.display_frame(out_frame)
             if k == ord('q'):
