@@ -228,7 +228,6 @@ class App:
             print(f"Oops! ding.mp3 not found!")
 
     def main_func(self):
-        pg.mouse.set_visible(False)
         self.delay_in_seconds = 3
         self.video_input_thread.start()
         while not self._settings["shutting down"]:
