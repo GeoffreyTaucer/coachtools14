@@ -55,4 +55,4 @@ The app should be ready to go. Depending on how everything is set up on your mac
 Email me at geoffreytaucer@gmail.com, with as much info as you can about what you were doing with the app leading up to the crash. If the crash opens up a terminal with a crash report, screenshot it and include it in your email. Make sure you mention CoachTools14 in the subject line.
 
 # It didn't crash, and was cool and helpful! What should I do?
-You can send donations via paypal to geoffreytaucer@gmail.com. You can also hire me, if your business is in need of a programmer. If you're near Baltimore and want me to build and set up systems for your training facility, send me an email and we can probably work something out.
+You can send donations via paypal to geoffreytaucer@gmail.com.
