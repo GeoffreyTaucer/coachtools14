@@ -52,7 +52,7 @@ The app should be ready to go. Depending on how everything is set up on your mac
 ```python App.py```
 
 # It crashed! What should I do?
-Email me at geoffreytaucer@gmail.com, with as much info as you can about what you were doing with the app leading up to the crash. If the crash opens up a terminal with a crash report, screenshot it and include it in your email. Make sure you mention CoachTools14 in the subject line.
+Sorry, but you're on your own. I don't maintain this project anymore. Good luck!
 
 # It didn't crash, and was cool and helpful! What should I do?
 You can send donations via paypal to geoffreytaucer@gmail.com.
